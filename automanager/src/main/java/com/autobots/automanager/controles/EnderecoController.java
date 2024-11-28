@@ -16,13 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.autobots.automanager.entidades.Cliente;
 import com.autobots.automanager.entidades.Endereco;
-import com.autobots.automanager.entidades.Endereco;
-import com.autobots.automanager.entidades.Endereco;
-import com.autobots.automanager.entidades.Endereco;
-import com.autobots.automanager.entidades.Endereco;
 import com.autobots.automanager.modelo.AdicionadorLinkEndereco;
 import com.autobots.automanager.modelo.ClienteSelecionador;
-import com.autobots.automanager.modelo.EnderecoAtualizador;
 import com.autobots.automanager.modelo.EnderecoAtualizador;
 import com.autobots.automanager.modelo.EnderecoSelecionador;
 import com.autobots.automanager.repositorios.ClienteRepositorio;
