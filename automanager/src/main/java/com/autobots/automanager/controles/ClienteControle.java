@@ -32,16 +32,19 @@ public class ClienteControle {
 
 	@GetMapping("/cliente/{id}")
 	public ResponseEntity<Cliente> obterCliente(@PathVariable long id) {
-		Cliente cliente = selecionador.selecionar(repositorio, id);
-		
-		if(cliente == null) {
-			ResponseEntity<Cliente> resposta = new ResponseEntity<>(HttpStatus.NOT_FOUND);
-			return resposta;
-		} else {
-			adicionadorLink.adicionarLink(cliente);
-			ResponseEntity<Cliente> resposta = new ResponseEntity<Cliente>(cliente, HttpStatus.FOUND);
-			return resposta;
+		try {
+			Cliente cliente = selecionador.selecionar(repositorio, id);
+			
+			if(cliente == null) {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			} else {
+				adicionadorLink.adicionarLink(cliente);
+				return new ResponseEntity<Cliente>(cliente, HttpStatus.FOUND);
+			}
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
+		
 	}
 
 	@GetMapping("/clientes")
@@ -49,24 +52,21 @@ public class ClienteControle {
 		List<Cliente> clientes = repositorio.findAll();
 		
 		if(clientes.isEmpty()) {
-			ResponseEntity<List<Cliente>> resposta = new ResponseEntity<>(HttpStatus.NOT_FOUND);
-			return resposta;
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} else {
 			adicionadorLink.adicionarLink(clientes);
-			ResponseEntity<List<Cliente>> resposta = new ResponseEntity<List<Cliente>>(clientes, HttpStatus.FOUND);
-			return resposta;
+			return new ResponseEntity<List<Cliente>>(clientes, HttpStatus.FOUND);
 		}
 	}
 
 	@PostMapping("/cadastro")
 	public ResponseEntity<?> cadastrarCliente(@RequestBody Cliente cliente) {
-		
 		try {
 			if (cliente.getId() == null) {
 				repositorio.save(cliente);
 				return new ResponseEntity<>(HttpStatus.CREATED);
 			} else {
-				return new ResponseEntity<>(HttpStatus.CONFLICT);
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
 		} catch (Exception e) {
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.CONFLICT);
