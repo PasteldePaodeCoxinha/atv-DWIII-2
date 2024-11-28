@@ -3,6 +3,8 @@ package com.autobots.automanager.controles;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.autobots.automanager.entidades.Cliente;
+import com.autobots.automanager.modelo.AdicionadorLinkCliente;
 import com.autobots.automanager.modelo.ClienteAtualizador;
 import com.autobots.automanager.modelo.ClienteSelecionador;
 import com.autobots.automanager.repositorios.ClienteRepositorio;
@@ -24,34 +27,84 @@ public class ClienteControle {
 	private ClienteRepositorio repositorio;
 	@Autowired
 	private ClienteSelecionador selecionador;
+	@Autowired
+	private AdicionadorLinkCliente adicionadorLink;
 
 	@GetMapping("/cliente/{id}")
-	public Cliente obterCliente(@PathVariable long id) {
-		return selecionador.selecionar(repositorio, id);
+	public ResponseEntity<Cliente> obterCliente(@PathVariable long id) {
+		Cliente cliente = selecionador.selecionar(repositorio, id);
+		
+		if(cliente == null) {
+			ResponseEntity<Cliente> resposta = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return resposta;
+		} else {
+			adicionadorLink.adicionarLink(cliente);
+			ResponseEntity<Cliente> resposta = new ResponseEntity<Cliente>(cliente, HttpStatus.FOUND);
+			return resposta;
+		}
 	}
 
 	@GetMapping("/clientes")
-	public List<Cliente> obterClientes() {
+	public ResponseEntity<List<Cliente>> obterClientes() {
 		List<Cliente> clientes = repositorio.findAll();
-		return clientes;
+		
+		if(clientes.isEmpty()) {
+			ResponseEntity<List<Cliente>> resposta = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return resposta;
+		} else {
+			adicionadorLink.adicionarLink(clientes);
+			ResponseEntity<List<Cliente>> resposta = new ResponseEntity<List<Cliente>>(clientes, HttpStatus.FOUND);
+			return resposta;
+		}
 	}
 
 	@PostMapping("/cadastro")
-	public void cadastrarCliente(@RequestBody Cliente cliente) {
-		repositorio.save(cliente);
+	public ResponseEntity<?> cadastrarCliente(@RequestBody Cliente cliente) {
+		
+		try {
+			if (cliente.getId() == null) {
+				repositorio.save(cliente);
+				return new ResponseEntity<>(HttpStatus.CREATED);
+			} else {
+				return new ResponseEntity<>(HttpStatus.CONFLICT);
+			}
+		} catch (Exception e) {
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.CONFLICT);
+		}
 	}
 
 	@PutMapping("/atualizar")
-	public void atualizarCliente(@RequestBody Cliente atualizacao) {
-		Cliente cliente = repositorio.getById(atualizacao.getId());
-		ClienteAtualizador atualizador = new ClienteAtualizador();
-		atualizador.atualizar(cliente, atualizacao);
-		repositorio.save(cliente);
+	public ResponseEntity<?> atualizarCliente(@RequestBody Cliente atualizacao) {
+		
+		try {
+			Cliente cliente = repositorio.getById(atualizacao.getId());
+			if(cliente.getId() == null) {
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			} else {
+				ClienteAtualizador atualizador = new ClienteAtualizador();
+				atualizador.atualizar(cliente, atualizacao);
+				repositorio.save(cliente);
+				return new ResponseEntity<>(HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.CONFLICT);
+		}
 	}
 
 	@DeleteMapping("/excluir")
-	public void excluirCliente(@RequestBody Cliente exclusao) {
-		Cliente cliente = repositorio.getById(exclusao.getId());
-		repositorio.delete(cliente);
+	public ResponseEntity<?> excluirCliente(@RequestBody Cliente exclusao) {
+		try {
+			Cliente cliente = repositorio.getById(exclusao.getId());
+			
+			if(cliente.getId() == null) {
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			} else {
+				repositorio.delete(cliente);
+				return new ResponseEntity<>(HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.CONFLICT);
+		}
+		
 	}
 }
