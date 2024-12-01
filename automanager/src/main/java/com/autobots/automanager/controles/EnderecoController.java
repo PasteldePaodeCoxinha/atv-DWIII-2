@@ -39,12 +39,16 @@ public class EnderecoController {
 
 	@GetMapping("/endereco/{id}")
 	public ResponseEntity<Endereco> obterEndereco(@PathVariable long id) {
-		Endereco endereco = selecionador.selecionar(repositorio, id);
-		if (endereco == null) {
+		try {
+			Endereco endereco = selecionador.selecionar(repositorio, id);
+			if (endereco == null) {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			} else {
+				adicionadorLink.adicionarLink(endereco);
+				return new ResponseEntity<Endereco>(endereco, HttpStatus.FOUND);
+			}
+		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		} else {
-			adicionadorLink.adicionarLink(endereco);
-			return new ResponseEntity<Endereco>(endereco, HttpStatus.FOUND);
 		}
 	}
 

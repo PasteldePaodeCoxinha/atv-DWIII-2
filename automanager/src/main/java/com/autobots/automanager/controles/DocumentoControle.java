@@ -39,12 +39,16 @@ public class DocumentoControle {
 
 	@GetMapping("/documento/{id}")
 	public ResponseEntity<Documento> obterDocumento(@PathVariable long id) {
-		Documento documento = selecionador.selecionar(repositorio, id);
-		if (documento == null) {
+		try {
+			Documento documento = selecionador.selecionar(repositorio, id);
+			if (documento == null) {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			} else {
+				adicionadorLink.adicionarLink(documento);
+				return new ResponseEntity<Documento>(documento, HttpStatus.FOUND);
+			}
+		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		} else {
-			adicionadorLink.adicionarLink(documento);
-			return new ResponseEntity<Documento>(documento, HttpStatus.FOUND);
 		}
 	}
 

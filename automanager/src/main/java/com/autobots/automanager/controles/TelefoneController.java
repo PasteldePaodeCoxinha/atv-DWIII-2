@@ -39,12 +39,16 @@ public class TelefoneController {
 
 	@GetMapping("/telefone/{id}")
 	public ResponseEntity<Telefone> obterTelefone(@PathVariable long id) {
-		Telefone telefone = selecionador.selecionar(repositorio, id);
-		if (telefone == null) {
+		try {
+			Telefone telefone = selecionador.selecionar(repositorio, id);
+			if (telefone == null) {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			} else {
+				adicionadorLink.adicionarLink(telefone);
+				return new ResponseEntity<Telefone>(telefone, HttpStatus.FOUND);
+			}
+		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		} else {
-			adicionadorLink.adicionarLink(telefone);
-			return new ResponseEntity<Telefone>(telefone, HttpStatus.FOUND);
 		}
 	}
 
